@@ -21,7 +21,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 auth_dict = get_config()
 
-CEL_BROKER = 'redis://:@{redis_broker}:6379/0'.format(redis_broker=auth_dict['redis_broker'])
+CEL_BROKER = auth_dict['celery_broker']
 
 app = Celery(auth_dict['celery_app_name'], broker=CEL_BROKER, include=['celeryapp'])
 
