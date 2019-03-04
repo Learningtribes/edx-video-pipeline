@@ -30,9 +30,11 @@ encode_dict:
         - override
     s3_proc:
         - mobile_low
-        - audio_mp3
+        - mobile_high
+#        - audio_mp3
         - desktop_mp4
         - hls
+        - desktop_webm
 
     yt_proc:
         - youtube
