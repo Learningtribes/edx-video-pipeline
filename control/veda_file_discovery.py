@@ -210,6 +210,7 @@ class FileDiscovery(object):
         file_ingested = False
         try:
             key.get_contents_to_filename(os.path.join(self.node_work_directory, file_name))
+            LOGGER.error('os.path.join(self.node_work_directory, file_name): ' + os.path.join(self.node_work_directory, file_name))
             file_ingested = True
         except S3DataError:
             LOGGER.error('[DISCOVERY] Error downloading the file into node working directory.')
@@ -249,6 +250,7 @@ class FileDiscovery(object):
                 self.bucket = connection.get_bucket(self.auth_dict['edx_s3_ingest_bucket'])
                 for video_s3_key in self.bucket.list(self.auth_dict['edx_s3_ingest_prefix'], '/'):
                     if video_s3_key.name != self.auth_dict['edx_s3_ingest_prefix']:
+                        LOGGER.error('video_s3_key.name: ' + video_s3_key.name)
                         self.validate_metadata_and_feed_to_ingest(video_s3_key=self.bucket.get_key(video_s3_key.name))
             except S3ResponseError:
                 LOGGER.error('[DISCOVERY] S3 Ingest Connection Failure')
@@ -280,9 +282,15 @@ class FileDiscovery(object):
         course_id = video_s3_key.get_metadata('course_key')
         transcript_preferences = video_s3_key.get_metadata('transcript_preferences')
         filename = os.path.basename(video_s3_key.name)
+        LOGGER.error('client_title: ' + client_title)
+        LOGGER.error('course_hex: ' + course_hex)
+        LOGGER.error('course_id: ' + course_id)
+        LOGGER.error('transcript_preferences: ' + transcript_preferences)
+        LOGGER.error('filename: ' + filename)
 
         # Try getting course based on the S3 metadata set on the video file.
         course = self.get_or_create_course(course_id, course_hex=course_hex)
+        LOGGER.error('course: ' + course)
         if course:
             # Download video file from S3 into node working directory.
             file_extension = os.path.splitext(client_title)[1][1:]
