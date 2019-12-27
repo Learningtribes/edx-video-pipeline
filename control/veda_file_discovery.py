@@ -11,7 +11,7 @@ Currently:
 import json
 import logging
 import os.path
-import os.listdir
+import os
 import shutil
 import json
 
