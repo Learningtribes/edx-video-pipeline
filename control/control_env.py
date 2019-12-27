@@ -41,9 +41,10 @@ WORK_DIRECTORY = CONFIG.get('VEDA_WORKING', DEFAULT_WORK_DIRECTORY)
 if not os.path.exists(WORK_DIRECTORY):
     os.mkdir(WORK_DIRECTORY)
 
-LOCAL_WORK_DIRECTORY = CONFIG.get('LOCAL_WORK_DIR')
-if not os.path.exists(LOCAL_WORK_DIRECTORY):
-    os.mkdir(LOCAL_WORK_DIRECTORY)
+if CONFIG.get('LOCAL_STORAGE'):
+    LOCAL_WORK_DIRECTORY = CONFIG.get('LOCAL_WORK_DIR')
+    if not os.path.exists(LOCAL_WORK_DIRECTORY):
+        os.mkdir(LOCAL_WORK_DIRECTORY)
 
 """
 Occasionally this throws an error in the env,
