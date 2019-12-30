@@ -63,8 +63,8 @@ class Hotstore(object):
                 source_metadata_file = self.upload_filepath + '.txt'
                 destination_video_file = self.auth_dict['LOCAL_WORK_DIR'] + '/veda/' + os.path.basename(source_video_file)
                 destination_metadata_file = self.auth_dict['LOCAL_WORK_DIR'] + '/veda/' + os.path.basename(source_metadata_file)
-                shutil.move(source_video_file, destination_video_file)
-                shutil.move(source_metadata_file, destination_metadata_file)
+                shutil.copy(source_video_file, destination_video_file)
+                shutil.copy(source_metadata_file, destination_metadata_file)
                 return True
             else:
                 LOGGER.error('[DISCOVERY] check LOCAL_STORAGE value')
