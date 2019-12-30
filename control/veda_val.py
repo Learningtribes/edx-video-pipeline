@@ -44,6 +44,8 @@ class VALAPICall(object):
         """VAL Data"""
         self.val_status = val_status
         self.platform_course_url = kwargs.get('platform_course_url', [])
+        LOGGER.error('self.platform_course_url: ')
+        LOGGER.error(self.platform_course_url)
 
         """VEDA Data"""
         self.video_proto = video_proto
@@ -54,6 +56,8 @@ class VALAPICall(object):
         self.endpoint_url = kwargs.get('endpoint_url', None)
         self.encode_data = []
         self.val_profile = None
+        LOGGER.error('self.endpoint_url: ')
+        LOGGER.error(self.endpoint_url)
 
         """Generated"""
         self.val_token = None

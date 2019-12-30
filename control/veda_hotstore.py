@@ -39,6 +39,12 @@ class Hotstore(object):
 
         self.auth_dict = self._READ_AUTH()
         self.endpoint_url = None
+        LOGGER.error('self.video_proto: ')
+        LOGGER.error(self.video_proto)
+        LOGGER.error('self.upload_filepath: ')
+        LOGGER.error(self.upload_filepath)
+        LOGGER.error('self.endpoint: ')
+        LOGGER.error(self.endpoint)
 
     def _READ_AUTH(self):
         return get_config()
@@ -87,6 +93,8 @@ class Hotstore(object):
             self.video_proto.veda_id,
             self.upload_filepath.split('.')[-1]
         ))
+        LOGGER.error('upload_key.key: ')
+        LOGGER.error(upload_key.key)
         try:
             upload_key.set_contents_from_filename(self.upload_filepath)
             return True

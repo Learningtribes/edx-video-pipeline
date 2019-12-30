@@ -167,13 +167,19 @@ class VedaIngest(object):
                 self.node_work_directory,
                 self.video_proto.s3_filename
             ))
+            LOGGER.error('self.video_proto.s3_filename: ')
+            LOGGER.error(self.full_filename)
         if self.video_proto.abvid_serial:
             self.full_filename = '/'.join((
                 self.node_work_directory,
                 self.video_proto.client_title
             ))
+            LOGGER.error('self.video_proto.abvid_serial: ')
+            LOGGER.error(self.full_filename)
             if len(self.video_proto.file_extension) > 2:
                 self.full_filename += "." + self.video_proto.file_extension
+                LOGGER.error('self.video_proto.file_extension: ')
+                LOGGER.error(self.full_filename)
 
         if not self.full_filename:
             self.full_filename = '/'.join((
@@ -375,8 +381,14 @@ class VedaIngest(object):
                 veda_filename
             )
         )
+        LOGGER.error('self.full_filename: ')
+        LOGGER.error(self.full_filename)
+        LOGGER.error('os.path.join(self.node_work_directory, veda_filename): ')
+        LOGGER.error(os.path.join(self.node_work_directory, veda_filename))
         self.full_filename = os.path.join(self.node_work_directory, veda_filename)
         os.system('chmod ugo+rwx ' + self.full_filename)
+        LOGGER.error('self.full_filename: ')
+        LOGGER.error(self.full_filename)
         return
 
     def store(self):
