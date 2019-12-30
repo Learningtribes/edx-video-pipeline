@@ -57,12 +57,25 @@ class Hotstore(object):
             LOGGER.error('[HOTSTORE] Local file not found')
             return False
 
-        self.upload_filesize = os.stat(self.upload_filepath).st_size
-
-        if self.upload_filesize < self.auth_dict['multi_upload_barrier']:
-            return self._BOTO_SINGLEPART()
+        if 'LOCAL_STORAGE' in self.auth_dict.keys():
+            if self.auth_dict['LOCAL_STORAGE']:
+                source_video_file = self.upload_filepath
+                source_metadata_file = self.upload_filepath + '.txt'
+                destination_video_file = self.auth_dict['LOCAL_WORK_DIR'] + '/veda/' + os.path.basename(source_video_file)
+                destination_metadata_file = self.auth_dict['LOCAL_WORK_DIR'] + '/veda/' + os.path.basename(destination_metadata_file)
+                shutil.move(source_video_file, destination_video_file)
+                shutil.move(source_metadata_file, destination_metadata_file)
+                return True
+            else:
+                LOGGER.error('[DISCOVERY] check LOCAL_STORAGE value')
+                return False
         else:
-            return self._BOTO_MULTIPART()
+            self.upload_filesize = os.stat(self.upload_filepath).st_size
+
+            if self.upload_filesize < self.auth_dict['multi_upload_barrier']:
+                return self._BOTO_SINGLEPART()
+            else:
+                return self._BOTO_MULTIPART()
 
     def _BOTO_SINGLEPART(self):
         """

@@ -381,6 +381,8 @@ class VedaIngest(object):
                 veda_filename
             )
         )
+        os.rename(self.full_filename+'.txt', os.path.join(self.node_work_directory,veda_filename+'.txt'))
+        os.system('chmod ugo+rwx ' + os.path.join(self.node_work_directory,veda_filename+'.txt'))
         LOGGER.error('self.full_filename: ')
         LOGGER.error(self.full_filename)
         LOGGER.error('os.path.join(self.node_work_directory, veda_filename): ')

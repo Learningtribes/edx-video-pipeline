@@ -270,16 +270,19 @@ class FileDiscovery(object):
         """
         if self.node_work_directory:
             if 'LOCAL_STORAGE' in self.auth_dict.keys():
-                items = os.listdir(self.auth_dict['LOCAL_WORK_DIR'] + '/ingest/')
-                LOGGER.error('items: ')
-                LOGGER.error(items)
-                for i in items:
-                    if i.endswith('.txt'):
-                        i_check = i[:-4]
-                        if i_check not in items:
-                            LOGGER.error('[DISCOVERY] lost video file')
-                        else:
-                            self.local_storage_validate_metadata_and_feed_to_ingest(i_check)
+                if self.auth_dict['LOCAL_STORAGE']:
+                    items = os.listdir(self.auth_dict['LOCAL_WORK_DIR'] + '/ingest/')
+                    LOGGER.error('items: ')
+                    LOGGER.error(items)
+                    for i in items:
+                        if i.endswith('.txt'):
+                            i_check = i[:-4]
+                            if i_check not in items:
+                                LOGGER.error('[DISCOVERY] lost video file')
+                            else:
+                                self.local_storage_validate_metadata_and_feed_to_ingest(i_check)
+                else:
+                    LOGGER.error('[DISCOVERY] check LOCAL_STORAGE value')
             else:
                 try:
                     connection = boto.connect_s3()
