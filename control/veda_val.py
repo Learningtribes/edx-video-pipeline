@@ -212,6 +212,10 @@ class VALAPICall(object):
             headers=self.headers,
             timeout=self.auth_dict['global_timeout']
         )
+        LOGGER.error('self.headers: ')
+        LOGGER.error(self.headers)
+        LOGGER.error("'/'.join((self.auth_dict['val_api_url'],self.video_proto.val_id))")
+        LOGGER.error('/'.join((self.auth_dict['val_api_url'],self.video_proto.val_id)))
 
         if r1.status_code != 200 and r1.status_code != 404:
             LOGGER.error('[API] : VAL Communication')
