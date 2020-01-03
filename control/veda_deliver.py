@@ -383,6 +383,8 @@ class VedaDelivery(object):
                     delivered = True
             else:
                 delivered = self.AWS_UPLOAD()
+            LOGGER.error('self.endpoint_url: ')
+            LOGGER.error(self.endpoint_url)
             return delivered
 
         elif self.encode_query.encode_destination.destination_nick == 'YT1':
