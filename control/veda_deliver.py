@@ -339,6 +339,10 @@ class VedaDelivery(object):
             return False
 
         u = requests.head(self.endpoint_url)
+        LOGGER.error('self.endpoint_url: ')
+        LOGGER.error(self.endpoint_url)
+        LOGGER.error('u.status_code: ')
+        LOGGER.error(u.status_code)
         if u.status_code > 399:
             return False
 
