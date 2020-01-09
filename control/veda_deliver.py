@@ -380,6 +380,7 @@ class VedaDelivery(object):
                     except:
                         LOGGER.error('[DELIVERY] move file Error')
                         delivered = False
+                    self.endpoint_url = 'https://learning-migration.learning-tribes.com/video_uploads/' + self.encoded_file
                     delivered = True
             else:
                 delivered = self.AWS_UPLOAD()
