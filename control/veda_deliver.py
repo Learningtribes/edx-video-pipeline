@@ -109,12 +109,13 @@ class VedaDelivery(object):
             # will take care for this encode profile as well.
             return None
 
-        if self.auth_dict['edx_cloudfront_prefix'] is not None:
+        if not 'LOCAL_STORAGE' in self.auth_dict.keys():
+            if self.auth_dict['edx_cloudfront_prefix'] is not None:
 
-            self.endpoint_url = '/'.join((
-                self.auth_dict['edx_cloudfront_prefix'],
-                self.encoded_file
-            ))
+                self.endpoint_url = '/'.join((
+                    self.auth_dict['edx_cloudfront_prefix'],
+                    self.encoded_file
+                ))
 
         u1 = URL(
             videoID=self.video_query,
