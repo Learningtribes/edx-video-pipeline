@@ -100,8 +100,6 @@ class Hotstore(object):
             self.video_proto.veda_id,
             self.upload_filepath.split('.')[-1]
         ))
-        LOGGER.error('upload_key.key: ')
-        LOGGER.error(upload_key.key)
         try:
             upload_key.set_contents_from_filename(self.upload_filepath)
             return True
