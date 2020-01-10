@@ -11,6 +11,9 @@ Currently:
 import json
 import logging
 import os.path
+import os
+import shutil
+import json
 
 import boto
 import boto.s3
@@ -198,6 +201,26 @@ class FileDiscovery(object):
 
         return course
 
+    def local_storage_move_files(self, source_directory, destination_directory, filename, method):
+        file_moved = False
+        try:
+            source_video_file = source_directory + '/' + filename
+            source_metadata_file = source_video_file + '.txt'
+            destination_video_file = destination_directory + '/' + filename
+            destination_metadata_file = destination_video_file + '.txt'
+            if method == 'move':
+                shutil.move(source_video_file, destination_video_file)
+                shutil.move(source_metadata_file, destination_metadata_file)
+                file_moved = True
+            elif method == 'copy':
+                shutil.copy(source_video_file, destination_video_file)
+                shutil.copy(source_metadata_file, destination_metadata_file)
+                file_moved = True
+        except:
+            LOGGER.error('failed to move file')
+        return file_moved
+
+
     def download_video_to_working_directory(self, key, file_name):
         """
         Downloads the video to working directory from S3 and
@@ -244,19 +267,90 @@ class FileDiscovery(object):
         Discovers studio ingested videos, for further validations and processes.
         """
         if self.node_work_directory:
-            try:
-                connection = boto.connect_s3()
-                self.bucket = connection.get_bucket(self.auth_dict['edx_s3_ingest_bucket'])
-                for video_s3_key in self.bucket.list(self.auth_dict['edx_s3_ingest_prefix'], '/'):
-                    if video_s3_key.name != self.auth_dict['edx_s3_ingest_prefix']:
-                        self.validate_metadata_and_feed_to_ingest(video_s3_key=self.bucket.get_key(video_s3_key.name))
-            except S3ResponseError:
-                LOGGER.error('[DISCOVERY] S3 Ingest Connection Failure')
+            if 'LOCAL_STORAGE' in self.auth_dict.keys():
+                if self.auth_dict['LOCAL_STORAGE']:
+                    items = os.listdir(self.auth_dict['LOCAL_WORK_DIR'] + '/ingest/')
+                    for i in items:
+                        if i.endswith('.txt'):
+                            i_check = i[:-4]
+                            if i_check not in items:
+                                LOGGER.error('[DISCOVERY] lost video file')
+                            else:
+                                self.local_storage_validate_metadata_and_feed_to_ingest(i_check)
+                else:
+                    LOGGER.error('[DISCOVERY] check LOCAL_STORAGE value')
+            else:
+                try:
+                    connection = boto.connect_s3()
+                    self.bucket = connection.get_bucket(self.auth_dict['edx_s3_ingest_bucket'])
+                    for video_s3_key in self.bucket.list(self.auth_dict['edx_s3_ingest_prefix'], '/'):
+                        if video_s3_key.name != self.auth_dict['edx_s3_ingest_prefix']:
+                            self.validate_metadata_and_feed_to_ingest(video_s3_key=self.bucket.get_key(video_s3_key.name))
+                except S3ResponseError:
+                    LOGGER.error('[DISCOVERY] S3 Ingest Connection Failure')
 
-            except NoAuthHandlerFound:
-                LOGGER.error('[DISCOVERY] BOTO Auth Handler')
+                except NoAuthHandlerFound:
+                    LOGGER.error('[DISCOVERY] BOTO Auth Handler')
         else:
             LOGGER.error('[DISCOVERY] No Working Node directory')
+
+    def local_storage_validate_metadata_and_feed_to_ingest(self, video_file):
+        filename = video_file
+        full_filename = self.auth_dict['LOCAL_WORK_DIR'] + '/ingest/' + video_file
+        with open(full_filename + '.txt') as f:
+            data = f.read()
+        file_metadata = json.loads(data)
+        client_title = file_metadata['client_video_id']
+        course_hex = file_metadata['course_video_upload_token']
+        course_id = file_metadata['course_key']
+        transcript_preferences = file_metadata['transcript_preferences']
+        course = self.get_or_create_course(course_id, course_hex=course_hex)
+
+        if course:
+            file_extension = os.path.splitext(client_title)[1][1:]
+            file_downloaded = self.local_storage_move_files(self.auth_dict['LOCAL_WORK_DIR'] + '/ingest', self.node_work_directory, filename, method='copy')
+            if not file_downloaded:
+                self.local_storage_move_files(self.auth_dict['LOCAL_WORK_DIR'] + '/ingest', self.auth_dict['LOCAL_WORK_DIR'] + '/' + self.auth_dict['edx_s3_rejected_prefix'], filename, method='move')
+
+            video_metadata = dict(
+                s3_filename=filename,
+                client_title=client_title,
+                file_extension=file_extension,
+                platform_course_url=course_id,
+            )
+
+            transcript_preferences = self.parse_transcript_preferences(course_id, transcript_preferences)
+            if transcript_preferences is not None:
+                video_metadata.update({
+                    'process_transcription': True,
+                    'provider': transcript_preferences.get('provider'),
+                    'three_play_turnaround': transcript_preferences.get('three_play_turnaround'),
+                    'cielo24_turnaround': transcript_preferences.get('cielo24_turnaround'),
+                    'cielo24_fidelity': transcript_preferences.get('cielo24_fidelity'),
+                    'preferred_languages': transcript_preferences.get('preferred_languages'),
+                    'source_language': transcript_preferences.get('video_source_language'),
+                })
+
+            ingest = VedaIngest(
+                course_object=course,
+                video_proto=VideoProto(**video_metadata),
+                node_work_directory=self.node_work_directory
+            )
+            ingest.insert()
+
+            if ingest.complete:
+                self.local_storage_move_files(self.auth_dict['LOCAL_WORK_DIR'] + '/ingest', self.auth_dict['LOCAL_WORK_DIR'] + '/' + self.auth_dict['edx_s3_processed_prefix'], filename, method='move')
+        else:
+            video_proto = VideoProto(
+                s3_filename=filename,
+                client_title=client_title,
+                file_extension='',
+                platform_course_url=course_id,
+                video_orig_duration=0.0
+            )
+            VALAPICall(video_proto=video_proto, val_status=u'invalid_token').call()
+            self.local_storage_move_files(self.auth_dict['LOCAL_WORK_DIR'] + '/ingest', self.auth_dict['LOCAL_WORK_DIR'] + '/' + self.auth_dict['edx_s3_rejected_prefix'], filename, method='move')
+            
 
     def validate_metadata_and_feed_to_ingest(self, video_s3_key):
         """

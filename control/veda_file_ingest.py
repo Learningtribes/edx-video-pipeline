@@ -375,6 +375,10 @@ class VedaIngest(object):
                 veda_filename
             )
         )
+        if 'LOCAL_STORAGE' in self.auth_dict.keys():
+            if self.auth_dict['LOCAL_STORAGE']:
+                os.rename(self.full_filename+'.txt', os.path.join(self.node_work_directory,veda_filename+'.txt'))
+                os.system('chmod ugo+rwx ' + os.path.join(self.node_work_directory,veda_filename+'.txt'))
         self.full_filename = os.path.join(self.node_work_directory, veda_filename)
         os.system('chmod ugo+rwx ' + self.full_filename)
         return

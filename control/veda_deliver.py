@@ -109,12 +109,13 @@ class VedaDelivery(object):
             # will take care for this encode profile as well.
             return None
 
-        if self.auth_dict['edx_cloudfront_prefix'] is not None:
+        if not 'LOCAL_STORAGE' in self.auth_dict.keys():
+            if self.auth_dict['edx_cloudfront_prefix'] is not None:
 
-            self.endpoint_url = '/'.join((
-                self.auth_dict['edx_cloudfront_prefix'],
-                self.encoded_file
-            ))
+                self.endpoint_url = '/'.join((
+                    self.auth_dict['edx_cloudfront_prefix'],
+                    self.encoded_file
+                ))
 
         u1 = URL(
             videoID=self.video_query,
@@ -200,30 +201,35 @@ class VedaDelivery(object):
             self.encode_query.encode_filetype
         )
 
-        self.hotstore_url = '/'.join((
-            'https:/',
-            's3.amazonaws.com',
-            self.auth_dict['veda_deliverable_bucket'],
-            self.encoded_file
-        ))
+        if 'LOCAL_STORAGE' in self.auth_dict.keys():
+            if self.auth_dict['LOCAL_STORAGE']:
+                source_video_file = self.auth_dict['LOCAL_WORK_DIR'] + '/veda/' + self.encoded_file
+                shutil.copy(source_video_file, os.path.join(self.node_work_directory, self.encoded_file))
+        else:
+            self.hotstore_url = '/'.join((
+                'https:/',
+                's3.amazonaws.com',
+                self.auth_dict['veda_deliverable_bucket'],
+                self.encoded_file
+            ))
 
-        try:
-            conn = S3Connection()
-            bucket = conn.get_bucket(self.auth_dict['veda_deliverable_bucket'])
-        except NoAuthHandlerFound:
-            LOGGER.error('[DELIVERY] {url} : BOTO/S3 Communication error'.format(url=self.hotstore_url))
-            return
-        except S3ResponseError:
-            LOGGER.error('[DELIVERY] {url} : Invalid Storage Bucket'.format(url=self.hotstore_url))
-            return
-        source_key = bucket.get_key(self.encoded_file)
-        if source_key is None:
-            LOGGER.error('[DELIVERY] {url} : S3 Intake Object not found'.format(url=self.hotstore_url))
-            return
+            try:
+                conn = S3Connection()
+                bucket = conn.get_bucket(self.auth_dict['veda_deliverable_bucket'])
+            except NoAuthHandlerFound:
+                LOGGER.error('[DELIVERY] {url} : BOTO/S3 Communication error'.format(url=self.hotstore_url))
+                return
+            except S3ResponseError:
+                LOGGER.error('[DELIVERY] {url} : Invalid Storage Bucket'.format(url=self.hotstore_url))
+                return
+            source_key = bucket.get_key(self.encoded_file)
+            if source_key is None:
+                LOGGER.error('[DELIVERY] {url} : S3 Intake Object not found'.format(url=self.hotstore_url))
+                return
 
-        source_key.get_contents_to_filename(
-            os.path.join(self.node_work_directory, self.encoded_file)
-        )
+            source_key.get_contents_to_filename(
+                os.path.join(self.node_work_directory, self.encoded_file)
+            )
 
         """
         Utilize Metadata method in veda_utils -- can later
@@ -362,7 +368,19 @@ class VedaDelivery(object):
             HLS
         '''
         if self.encode_query.encode_destination.destination_nick == 'S31' or self.encode_profile == 'override':
-            delivered = self.AWS_UPLOAD()
+            if 'LOCAL_STORAGE' in self.auth_dict.keys():
+                if self.auth_dict['LOCAL_STORAGE']:
+                    source_video_file = os.path.join(self.node_work_directory, self.encoded_file)
+                    destination_video_file = self.auth_dict['LOCAL_WORK_DIR'] + '/online/' + self.encoded_file
+                    try:
+                        shutil.copy(source_video_file, destination_video_file)
+                    except:
+                        LOGGER.error('[DELIVERY] move file Error')
+                        delivered = False
+                    self.endpoint_url = self.auth_dict['LOCAL_VIDEO_URL'] + '/video_uploads/' + self.encoded_file
+                    delivered = True
+            else:
+                delivered = self.AWS_UPLOAD()
             return delivered
 
         elif self.encode_query.encode_destination.destination_nick == 'YT1':
