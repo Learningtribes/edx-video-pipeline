@@ -44,8 +44,6 @@ class VALAPICall(object):
         """VAL Data"""
         self.val_status = val_status
         self.platform_course_url = kwargs.get('platform_course_url', [])
-        LOGGER.error('self.platform_course_url: ')
-        LOGGER.error(self.platform_course_url)
 
         """VEDA Data"""
         self.video_proto = video_proto
@@ -56,8 +54,6 @@ class VALAPICall(object):
         self.endpoint_url = kwargs.get('endpoint_url', None)
         self.encode_data = []
         self.val_profile = None
-        LOGGER.error('self.endpoint_url: ')
-        LOGGER.error(self.endpoint_url)
 
         """Generated"""
         self.val_token = None
@@ -212,10 +208,6 @@ class VALAPICall(object):
             headers=self.headers,
             timeout=self.auth_dict['global_timeout']
         )
-        LOGGER.error('self.headers: ')
-        LOGGER.error(self.headers)
-        LOGGER.error("'/'.join((self.auth_dict['val_api_url'],self.video_proto.val_id))")
-        LOGGER.error('/'.join((self.auth_dict['val_api_url'],self.video_proto.val_id)))
 
         if r1.status_code != 200 and r1.status_code != 404:
             LOGGER.error('[API] : VAL Communication')

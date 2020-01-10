@@ -340,10 +340,6 @@ class VedaDelivery(object):
             return False
 
         u = requests.head(self.endpoint_url)
-        LOGGER.error('self.endpoint_url: ')
-        LOGGER.error(self.endpoint_url)
-        LOGGER.error('u.status_code: ')
-        LOGGER.error(u.status_code)
         if u.status_code > 399:
             return False
 
@@ -381,12 +377,10 @@ class VedaDelivery(object):
                     except:
                         LOGGER.error('[DELIVERY] move file Error')
                         delivered = False
-                    self.endpoint_url = 'https://learning-migration.learning-tribes.com/video_uploads/' + self.encoded_file
+                    self.endpoint_url = self.auth_dict['LOCAL_VIDEO_URL'] + '/video_uploads/' + self.encoded_file
                     delivered = True
             else:
                 delivered = self.AWS_UPLOAD()
-            LOGGER.error('self.endpoint_url: ')
-            LOGGER.error(self.endpoint_url)
             return delivered
 
         elif self.encode_query.encode_destination.destination_nick == 'YT1':

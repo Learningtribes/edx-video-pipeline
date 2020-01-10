@@ -39,12 +39,6 @@ class Hotstore(object):
 
         self.auth_dict = self._READ_AUTH()
         self.endpoint_url = None
-        LOGGER.error('self.video_proto: ')
-        LOGGER.error(self.video_proto)
-        LOGGER.error('self.upload_filepath: ')
-        LOGGER.error(self.upload_filepath)
-        LOGGER.error('self.endpoint: ')
-        LOGGER.error(self.endpoint)
 
     def _READ_AUTH(self):
         return get_config()
