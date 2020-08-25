@@ -117,6 +117,9 @@ class VedaDelivery(object):
                     self.encoded_file
                 ))
 
+        if 'USE_CDN' in self.auth_dict.keys():
+            self.endpoint_url = '/'.join((self.auth_dict['CDN_URL'],self.encoded_file))
+
         u1 = URL(
             videoID=self.video_query,
             encode_profile=self.encode_query,
